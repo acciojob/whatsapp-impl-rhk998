@@ -30,9 +30,9 @@ public class WhatsappRepository {
 
 
 
-    public String createUser(String name, String mobile) {
+    public String createUser(String name, String mobile) throws Exception{
         if (userMobile.contains(mobile)){
-            return "User already exists";
+            throw new Exception("User already exists");
         }
 
         User user = new User(name,mobile);
@@ -58,5 +58,48 @@ public class WhatsappRepository {
     public void addGroup(Group group, List<User> users, User admin) {
         groupUserMap.put(group, users);
         adminMap.put(group, admin);
+    }
+
+    public int createMessage(String content) {
+        messageId++;
+        Message message = new Message(messageId,content,new Date());
+        return messageId;
+    }
+
+    public int sendMessage(Message message, User sender, Group group) throws Exception {
+
+            if(!groupUserMap.containsKey(group)){
+                throw new Exception("Group does not exist");
+            }
+
+            List<User> users = groupUserMap.get(group);
+            if(!users.contains(sender)){
+                throw new Exception("You are not allowed to send message");
+            }
+            List<Message> mssgs = groupMessageMap.getOrDefault(group,new ArrayList<>());
+            mssgs.add(message);
+            groupMessageMap.put(group,mssgs);
+
+            senderMap.put(message,sender);
+
+            return mssgs.size();
+    }
+
+    public String findMessage(Date start, Date end, int k) throws Exception {
+
+        List<Message> filteredMessages = new ArrayList<>();
+
+        for(List<Message>  mssgs : groupMessageMap.values()){
+            for(Message message : mssgs){
+                if (message.getTimestamp().after(start) && message.getTimestamp().before(end)) {
+                    filteredMessages.add(message);
+                }
+            }
+        }
+        filteredMessages.sort((m1, m2) -> m2.getTimestamp().compareTo(m1.getTimestamp()));
+        if (filteredMessages.size() < k) {
+            throw new Exception("K is greater than the number of messages");
+        }
+        return filteredMessages.get(k - 1).getContent();
     }
 }

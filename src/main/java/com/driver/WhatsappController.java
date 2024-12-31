@@ -3,6 +3,7 @@ package com.driver;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,51 +50,65 @@ public class WhatsappController {
         }
     }
 
-//    @PostMapping("/add-message")
-//    public int createMessage(String content){
-//        // The 'i^th' created message has message id 'i'.
-//        // Return the message id.
-//
-//        return whatsappService.createMessage(content);
-//    }
-//
-//    @PutMapping("/send-message")
-//    public int sendMessage(Message message, User sender, Group group) throws Exception{
-//        //Throw "Group does not exist" if the mentioned group does not exist
-//        //Throw "You are not allowed to send message" if the sender is not a member of the group
-//        //If the message is sent successfully, return the final number of messages in that group.
-//
-//        return whatsappService.sendMessage(message, sender, group);
-//    }
-//
-//    @PutMapping("/change-admin")
-//    public String changeAdmin(User approver, User user, Group group) throws Exception{
-//        //Throw "Group does not exist" if the mentioned group does not exist
-//        //Throw "Approver does not have rights" if the approver is not the current admin of the group
-//        //Throw "User is not a participant" if the user is not a part of the group
-//        //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
-//
-//        return whatsappService.changeAdmin(approver, user, group);
-//    }
-//
-//    @DeleteMapping("/remove-user")
-//    public int removeUser(User user) throws Exception{
-//        //This is a bonus problem and does not contains any marks
-//        //A user belongs to exactly one group
-//        //If user is not found in any group, throw "User not found" exception
-//        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
-//        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
-//        //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
-//
-//        return whatsappService.removeUser(user);
-//    }
-//
-//    @GetMapping("/find-messages")
-//    public String findMessage(Date start, Date end, int K) throws Exception{
-//        //This is a bonus problem and does not contains any marks
-//        // Find the Kth latest message between start and end (excluding start and end)
-//        // If the number of messages between given time is less than K, throw "K is greater than the number of messages" exception
-//
-//        return whatsappService.findMessage(start, end, K);
-//    }
+    @PostMapping("/add-message")
+    public ResponseEntity<Integer> createMessage(@RequestParam String content){
+        // The 'i^th' created message has message id 'i'.
+        // Return the message id.
+        int messageId = whatsappService.createMessage(content);
+        return new ResponseEntity<>(messageId, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/send-message")
+    public ResponseEntity<?> sendMessage(@RequestBody Message message, @RequestParam User sender, @RequestBody Group group) throws Exception{
+        //Throw "Group does not exist" if the mentioned group does not exist
+        //Throw "You are not allowed to send message" if the sender is not a member of the group
+        //If the message is sent successfully, return the final number of messages in that group.
+
+        try{
+            int mssgCnt =  whatsappService.sendMessage(message, sender, group);
+            return new ResponseEntity<>(mssgCnt, HttpStatus.CREATED);
+        }catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/change-admin")
+    public String changeAdmin(User approver, User user, Group group) throws Exception{
+        //Throw "Group does not exist" if the mentioned group does not exist
+        //Throw "Approver does not have rights" if the approver is not the current admin of the group
+        //Throw "User is not a participant" if the user is not a part of the group
+        //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
+
+        return whatsappService.changeAdmin(approver, user, group);
+    }
+
+    @DeleteMapping("/remove-user")
+    public int removeUser(User user) throws Exception{
+        //This is a bonus problem and does not contains any marks
+        //A user belongs to exactly one group
+        //If user is not found in any group, throw "User not found" exception
+        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
+        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
+        //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
+
+        return whatsappService.removeUser(user);
+    }
+
+    @GetMapping("/find-messages")
+    public ResponseEntity<String> findMessage(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date end,
+            @RequestParam("K") int K) throws Exception{
+        //This is a bonus problem and does not contains any marks
+        // Find the Kth latest message between start and end (excluding start and end)
+        // If the number of messages between given time is less than K, throw "K is greater than the number of messages" exception
+
+        try{
+            String mssg = whatsappService.findMessage(start, end, K);
+
+            return new ResponseEntity<>(mssg, HttpStatus.CREATED);
+        }catch (Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
 }
