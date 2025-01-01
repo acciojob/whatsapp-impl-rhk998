@@ -73,17 +73,21 @@ public class WhatsappController {
     }
 
     @PutMapping("/change-admin")
-    public String changeAdmin(User approver, User user, Group group) throws Exception{
+    public ResponseEntity<String> changeAdmin(User approver, User user, Group group) {
         //Throw "Group does not exist" if the mentioned group does not exist
         //Throw "Approver does not have rights" if the approver is not the current admin of the group
         //Throw "User is not a participant" if the user is not a part of the group
         //Change the admin of the group to "user" and return "SUCCESS". Note that at one time there is only one admin and the admin rights are transferred from approver to user.
-
-        return whatsappService.changeAdmin(approver, user, group);
+        try{
+            String response = whatsappService.changeAdmin(approver, user, group);
+            return new ResponseEntity<>(response,HttpStatus.CREATED);
+        }catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
     }
 
     @DeleteMapping("/remove-user")
-    public int removeUser(User user) throws Exception{
+    public ResponseEntity<?> removeUser(User user) {
         //This is a bonus problem and does not contains any marks
         //A user belongs to exactly one group
         //If user is not found in any group, throw "User not found" exception
@@ -91,14 +95,19 @@ public class WhatsappController {
         //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
         //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
 
-        return whatsappService.removeUser(user);
+        try{
+            int count = whatsappService.removeUser(user);
+            return new ResponseEntity<>(count,HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @GetMapping("/find-messages")
     public ResponseEntity<String> findMessage(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date end,
-            @RequestParam("K") int K) throws Exception{
+            @RequestParam("K") int K) {
         //This is a bonus problem and does not contains any marks
         // Find the Kth latest message between start and end (excluding start and end)
         // If the number of messages between given time is less than K, throw "K is greater than the number of messages" exception

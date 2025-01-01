@@ -38,17 +38,11 @@ public class WhatsappService {
     }
 
     public String changeAdmin(User approver, User user, Group group) throws Exception{
-        //Change the admin of the group to "user".
-        //Throw "Group does not exist" if the mentioned group does not exist
-        //Throw "Approver does not have rights" if the approver is not the current admin of the group
-        //Throw "User is not a participant" if the user is not a part of the group
+
         return whatsappRepository.changeAdmin(approver, user, group);
     }
 
     public int removeUser(User user) throws Exception{
-        //If user is not found in any group, throw "User not found" exception
-        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
-        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
 
         return whatsappRepository.removeUser(user);
     }

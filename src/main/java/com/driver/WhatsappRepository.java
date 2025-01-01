@@ -102,4 +102,68 @@ public class WhatsappRepository {
         }
         return filteredMessages.get(k - 1).getContent();
     }
+
+    public String changeAdmin(User approver, User user, Group group) throws Exception{
+        //Change the admin of the group to "user".
+        //Throw "Group does not exist" if the mentioned group does not exist
+        //Throw "Approver does not have rights" if the approver is not the current admin of the group
+        //Throw "User is not a participant" if the user is not a part of the group
+
+        if(!groupUserMap.containsKey(group)){
+            throw new Exception("Group does not exist");
+        }
+        if(!adminMap.containsKey(approver)){
+            throw new Exception("Approver does not have rights");
+        }
+        List<User> participants = groupUserMap.get(group);
+        if (!participants.contains(user)) {
+            throw new Exception("User is not a participant");
+        }
+
+        adminMap.put(group,user);
+        return "SUCCESS";
+    }
+
+    public int removeUser(User user) throws Exception{
+        //If user is not found in any group, throw "User not found" exception
+        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
+        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
+
+        Group userGroup = null;
+        for(Map.Entry<Group,List<User>> entry : groupUserMap.entrySet()){
+            List<User> users = entry.getValue();
+            if(!users.contains(user)){
+                userGroup = entry.getKey();
+                break;
+            }
+        }
+        if (userGroup == null) {
+            throw new Exception("User not found");
+        }
+        if (adminMap.get(userGroup).equals(user)) {
+            throw new Exception("Cannot remove admin");
+        }
+        List<User> users = groupUserMap.get(userGroup);
+        users.remove(user);
+        groupUserMap.put(userGroup, users);
+
+        List<Message> messagesToRemove = new ArrayList<>();
+        for (Map.Entry<Group, List<Message>> entry : groupMessageMap.entrySet()) {
+            List<Message> messages = entry.getValue();
+            for (Message message : messages) {
+                if (senderMap.get(message).equals(user)) {
+                    messagesToRemove.add(message);
+                }
+            }
+            messages.removeAll(messagesToRemove);
+            groupMessageMap.put(entry.getKey(), messages);
+        }
+
+        for (Message message : messagesToRemove) {
+            senderMap.remove(message);
+        }
+        return messagesToRemove.size();
+
+
+    }
 }
