@@ -14,15 +14,13 @@ public class WhatsappService {
         return whatsappRepository.createUser(name, mobile);
     }
 
-    public Group createGroup(List<User> users) throws Exception {
+    public Group createGroup(List<User> users)  {
         // The list contains at least 2 users where the first user is the admin.
         // If there are only 2 users, the group is a personal chat and the group name should be kept as the name of the second user(other than admin)
         // If there are 2+ users, the name of group should be "Group #count". For example, the name of first group would be "Group 1", second would be "Group 2" and so on.
         // Note that a personal chat is not considered a group and the count is not updated for personal chats.
 
-        if( users.size() < 2 || users == null ){
-            throw new Exception("A group must have at least 2 users");
-        }
+
         return whatsappRepository.createGroup(users);
     }
 
