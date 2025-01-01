@@ -120,7 +120,7 @@ public class WhatsappRepository {
         if(!groupUserMap.containsKey(group)){
             throw new Exception("Group does not exist");
         }
-        if(!adminMap.containsKey(approver)){
+        if(!adminMap.get(group).equals(approver)){
             throw new Exception("Approver does not have rights");
         }
         List<User> participants = groupUserMap.get(group);
